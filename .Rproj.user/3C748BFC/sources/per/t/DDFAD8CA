@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1577384038488.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2922951891",
+    "id" : "DDFAD8CA",
+    "lastKnownWriteTime" : 1577474760,
+    "last_content_update" : 1577474760933,
+    "path" : "~/Desktop/project/DataExplorer/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "71,51",
+        "scrollLine" : "73"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

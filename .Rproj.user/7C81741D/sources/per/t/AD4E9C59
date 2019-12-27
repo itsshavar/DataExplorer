@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1565018516461.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "AD4E9C59",
+    "lastKnownWriteTime" : 0,
+    "last_content_update" : 1565018516461,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "context" : "package:base:::unlist"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_code_browser"
+}
