@@ -1,3 +1,4 @@
+
 library(shiny)
 library(tidyr)
 library(ggplot2)
@@ -5,7 +6,7 @@ library(dplyr)
 library(purrr)
 library(stringr)
 library("DataExplorer")
-source("word_cloud.r") 
+#source("word_cloud.r") 
 # Define UI for data upload app ----
 ui <- fluidPage(
   #shinythemes::themeSelector(),
@@ -26,6 +27,7 @@ ui <- fluidPage(
                            ".csv")),
       
       # Horizontal line ----
+      h6("Default Data: MTCARS"),
       tags$hr(),
       
       # Input: Checkbox if file has header ----
@@ -70,32 +72,71 @@ ui <- fluidPage(
                  tableOutput("coltype"),
                  h4("Summary of Data"),
                  verbatimTextOutput("summary_data")),
-        tabPanel("Data",h4("First 10 Data Points"),
+        tabPanel("Data",h4("First 6 Data Points"),
                  tableOutput("head"),
-                 h4("First 10 Data Points"),
+                 h4("Last 6 Data Points"),
                  tableOutput("tail")),
-        tabPanel("Visulization",
-                 h4("Correlation"),
-                 plotOutput("corrplot"),
-                  h4("Histrogram"),plotOutput("histoplot")
-                 )
+        tabPanel("Visualization",
+                  h4("Correlation"),
+                    plotOutput("corrplot"),
+                  h4("Histrogram"),
+                    plotOutput("histoplot"),
+                  h4("Density Plot"),
+                    plotOutput("desityplot"),
+                  h4("PCA Plot"),
+                    plotOutput("pcaplot")
+                )
       )
       
     )
     
   )
 )
-
+options(shiny.maxRequestSize=30*1024^2)
 # Define server logic to read selected file ----
 server <- function(input, output,session) {
+   read <- function(input){
+    req(input$file1)
+    
+    # when reading semicolon separated files,
+    # having a comma separator causes `read.csv` to error
+    tryCatch(
+      {
+        df <- read.csv(input$file1$datapath,
+                       header = input$header,
+                       sep = input$sep,
+                       quote = input$quote)
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+    
+    if(input$disp == "head") {
+      return(head(df))
+    }
+    else {
+      return(df)
+    }
+  }
+  data <- reactive({
+    if (length(input$file1) == 0){
+      return (mtcars)
+    }
+    else{
+      read(input)
+    }
+  })
   choices_column <- reactive({
-    choices_column <- colnames(read(input))
+    choices_column <- colnames(data)
   })
   observe({
     updateSelectInput(session = session, inputId = "column_name", choices = choices_column())
   })
-  
-  column_type <- function(data){
+ 
+  column_type <- function(a){
+    data <-a
     textual_data <- 0
     categorical_data <-  0
     numeric_data <- 0
@@ -121,69 +162,53 @@ server <- function(input, output,session) {
     return (list(numeric_data = as.integer(numeric_data),textual_data = as.integer(textual_data),
                  categorical_data = as.integer(categorical_data) , unsupported_data = as.integer(unsupported_data)))
   }
-  read <- function(input){
-  req(input$file1)
-  
-  # when reading semicolon separated files,
-  # having a comma separator causes `read.csv` to error
-  tryCatch(
-    {
-      df <- read.csv(input$file1$datapath,
-                     header = input$header,
-                     sep = input$sep,
-                     quote = input$quote)
-    },
-    error = function(e) {
-      # return a safeError if a parsing error occurs
-      stop(safeError(e))
-    }
-  )
-  
-  if(input$disp == "head") {
-    return(head(df))
-  }
-  else {
-    return(df)
-  }
-  }
-  
-  output$head <- renderTable(head(read(input)))
-  output$tail <- renderTable(tail(read(input)))
+  output$head <- renderTable(head(data()))
+  output$tail <- renderTable(tail(data()))
   output$columns <- renderPrint({ 
-    str(read(input))
+    str(data())
   })
   output$summary_data <- renderPrint({ 
-      return (read(input) %>%
+      return (data()%>%
                 keep(is.numeric)%>%
                 summary())
   })
   output$coltype <- renderTable({ 
-  column_type(read(input))
+  column_type(data())
   })
   output$corrplot <- renderPlot({
-    return (read(input) %>%
+    return (data() %>%
       keep(is.numeric) %>% 
         na.omit()%>%
       plot_correlation(type = "c"))
   })
   output$histoplot <- renderPlot({
-    return (read(input) %>%
+    return (data() %>%
               keep(is.numeric) %>% 
               na.omit()%>%
               plot_histogram())
+  }) 
+  output$desityplot <- renderPlot({
+    return (data() %>%
+              keep(is.numeric) %>% 
+              na.omit()%>%
+              plot_density())
   })
-  output$word_cloud<- renderPlot({
-    return (cloud(read(input)[[5]]))
+  output$pcaplot <- renderPlot({
+    return (data() %>%
+              keep(is.numeric) %>% 
+              na.omit()%>%
+             plot_prcomp())
   })
+  
+  #output$word_cloud<- renderPlot({
+   # return (cloud(data[[5]]))
+  #})
   output$data_desc <- renderPlot({
-    return (plot_intro(read(input)))
+        return (plot_intro(data()))
   })
   output$data_missing <- renderPlot({
-    return (plot_missing(read(input)))
-  })
-  
-  
-  
+    return (plot_missing(data()))
+  }) 
 }
 # Run the application 
 shinyApp(ui = ui, server = server)
