@@ -84,7 +84,10 @@ ui <- fluidPage(
                   h4("Density Plot"),
                     plotOutput("desityplot"),
                   h4("PCA Plot"),
-                    plotOutput("pcaplot")
+                    plotOutput("pcaplot"),
+                  h4("Box Plot"),
+                    plotOutput("boxplot"),
+                    
                 )
       )
       
@@ -199,6 +202,18 @@ server <- function(input, output,session) {
               na.omit()%>%
              plot_prcomp())
   })
+  generate.random.colors <- function(number_of_colors_to_get){
+     return(colors(distinct = TRUE)[runif(number_of_colors_to_get, min = 1, max = length(colors(distinct = TRUE)))])
+ }
+  output$boxplot <- renderPlot({
+    data <- data()
+    return (data %>%
+              keep(is.numeric) %>% 
+              na.omit()%>%
+              scale%>%
+             boxplot(notch=TRUE,col=generate.random.colors(dim(data)[2]),anno=TRUE))
+  })
+
   
   #output$word_cloud<- renderPlot({
    # return (cloud(data[[5]]))
